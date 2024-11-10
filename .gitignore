@@ -1,0 +1,16 @@
+# Ignoring python stuff
+__pycache__
+app.egg-info
+*.pyc
+.mypy_cache
+.coverage
+htmlcov
+.cache
+venv
+
+# Ignoring environment variables
+.env
+
+# Ignoring development files
+development_files/
+Muebles_dev.session.sql
