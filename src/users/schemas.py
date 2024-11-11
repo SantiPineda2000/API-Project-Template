@@ -1,5 +1,6 @@
 from datetime import date
 from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic import EmailStr
 from sqlmodel import Field
 from sqlmodel import SQLModel
 
@@ -41,6 +42,7 @@ class UpdateUser(SQLModel):
     last_name: str | None = Field(default=None, max_length=50)
     username: str | None = Field(default=None, max_length=50)
     phone_number: PhoneNumber | None = Field(default=None)
+    email: EmailStr | None = Field(default=None)
     user_name: str | None = Field(default=None, max_length=50)
     birthday: date | None = Field(default=None)
     password: str | None= Field(default=None, min_length=8, max_length=40)

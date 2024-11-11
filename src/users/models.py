@@ -1,5 +1,6 @@
 from datetime import date
 from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic import EmailStr
 
 from sqlmodel import Field, Relationship
 from sqlmodel import SQLModel
@@ -15,6 +16,7 @@ class BaseUser(SQLModel):
     last_name: str = Field(max_length=50)
     birthday: date
     phone_number: PhoneNumber
+    email: EmailStr | None = Field(default=None)
 
 class Users(BaseUser, table=True):
     id: int | None = Field(default=None, primary_key=True)

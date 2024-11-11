@@ -20,7 +20,7 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from src.models import SQLModel # importing table models
+from src.users.models import SQLModel # importing table models
 from src.config import settings # importing the settings
 
 target_metadata = SQLModel.metadata

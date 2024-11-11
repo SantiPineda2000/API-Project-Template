@@ -2,6 +2,7 @@ from typing import Any, Annotated
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlmodel import func, select
 from datetime import date
+from pydantic import EmailStr
 
 from src.config import settings
 from src.uploads import upload_image
@@ -63,6 +64,7 @@ async def create_user(
         first_name: Annotated[str, Form()],
         last_name: Annotated[str, Form()],
         phone_number: Annotated[str, Form()],
+        email: Annotated[EmailStr, Form()],
         birthday: Annotated[date, Form(description="The format is yyyy-mm-dd")],
         user_name: Annotated[str, Form()],
         salary: Annotated[float, Form()],
@@ -85,6 +87,7 @@ async def create_user(
         last_name=last_name, 
         birthday=birthday, 
         phone_number= '+52' + phone_number, # Making a valid phone number with country code (Mexico)
+        email= email,
         user_name=user_name,
         password=password,
         is_admin=is_admin, 
@@ -135,6 +138,7 @@ async def update_user_me(
     first_name: Annotated[str, Form()] = None,
     last_name: Annotated[str, Form()] = None,
     phone_number: Annotated[str, Form()] = None,
+    email: Annotated[EmailStr, Form()] = None,
     birthday: Annotated[date, Form(description="The format is yyyy-mm-dd")] = None,
     user_name: Annotated[str, Form()] = None,
     password: Annotated[str, Form()] = None,
@@ -147,14 +151,17 @@ async def update_user_me(
     Update own user
     '''
     # Assamble user data
-    user_in = UserUpdateMe(
-        first_name=first_name, 
-        last_name=last_name, 
-        birthday=birthday, 
-        phone_number= '+52' + phone_number, # Making a valid phone number with country code (Mexico)
-        user_name=user_name,
-        password=password,
-        )
+    passed_data = {
+        "first_name":first_name, 
+        "last_name":last_name, 
+        "user_name":user_name,
+        "phone_number":phone_number,
+        "email":email,
+        "birthday":birthday,
+        "password":password
+        }
+
+    user_in = UpdateUser(**{k: v for k, v in passed_data.items() if v is not None})
 
     if user_in.username:
         existig_user = service.get_user_by_username(session=session, user_name=user_in.username)
@@ -243,10 +250,11 @@ async def update_user(
         last_name: Annotated[str, Form()] = None,
         user_name: Annotated[str, Form()] = None,
         phone_number: Annotated[str, Form()] = None,
+        email: Annotated[EmailStr, Form()] = None,
         birthday: Annotated[date, Form(description="The format is yyyy-mm-dd")] = None,
         salary: Annotated[float, Form()] = None,
         password: Annotated[str, Form()] = None,
-        is_admin: Annotated[bool, Form()] = None,
+        is_admin: Annotated[bool, Form()] = False,
         role_name: Annotated[str, Form()] = None,
         user_image: Annotated[
                     UploadFile | None, 
@@ -259,18 +267,21 @@ async def update_user(
     db_user = session.get(Users, user_id)
     if not db_user:
         raise exceptions.User_Not_Found()
-    
-    user_in = UpdateUser(
-        first_name=first_name,
-        last_name=last_name,
-        user_name=user_name,
-        phone_number=phone_number,
-        birthday=birthday,
-        password=password,
-        is_admin=is_admin,
-        salary=salary, 
-        role_name=role_name
-    )
+    # Assamble user data
+    passed_data = {
+        "first_name":first_name, 
+        "last_name":last_name, 
+        "user_name":user_name,
+        "phone_number":phone_number,
+        "email":email,
+        "birthday":birthday,
+        "password":password,
+        "is_admin":is_admin,
+        "salary":salary, 
+        "role_name":role_name
+        }
+
+    user_in = UpdateUser(**{k: v for k, v in passed_data.items() if v is not None})
 
     if user_in.user_name:
         existing_user = service.get_user_by_username(session=session, user_name=user_in.user_name)
