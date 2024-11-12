@@ -1,8 +1,7 @@
 from datetime import date
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from pydantic import EmailStr
-from sqlmodel import Field
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
 
 from src.users.models import BaseRolDep, BaseUser
 

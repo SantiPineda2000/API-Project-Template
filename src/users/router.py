@@ -6,10 +6,11 @@ from pydantic import EmailStr
 
 from src.config import settings
 from src.uploads import upload_image
-from src.users import service, exceptions, constants
+from src.users import service, exceptions
 from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner
 from src.auth.service import get_password_hash, verify_password
 from src.users.models import Users, Roles
+from src.users.constants import image_const
 from src.users.schemas import(
     UpdatePassword, 
     UpdateUser, 
@@ -75,7 +76,7 @@ async def create_user(
         # Image optional
         user_image: Annotated[
                         UploadFile | None, 
-                        File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in constants.ALLOWED_CONTENT_TYPES])}")
+                        File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in image_const.ALLOWED_CONTENT_TYPES])}")
                     ] = None
     ) -> Any:
     '''
@@ -105,17 +106,8 @@ async def create_user(
         raise exceptions.Role_Not_Found()
     
     if user_image:
-        if user_image.content_type not in constants.ALLOWED_CONTENT_TYPES:
-            raise exceptions.Unsupported_File(supported=constants.ALLOWED_CONTENT_TYPES)
-        
-        elif user_image.size > constants.MAX_IMAGE_SIZE:
-            raise exceptions.File_Too_Large(max_bytes=constants.MAX_IMAGE_SIZE)
-        
-        # Change the image name but keep the extension
-        file_ext = user_image.filename.split('.')[-1]
-        user_image.filename = '_'.join([first_name.lower(), last_name.lower(), 'photo']) + f'.{file_ext}'
-        
-        img_path = await upload_image(sub_dir=constants.USERS_IMAGES_UPLOAD_SUB_DIR, image=user_image, environment=settings.ENVIRONMENT)
+        filename = '_'.join([first_name.lower(), last_name.lower(), 'photo'])
+        img_path = await upload_image(image_const=image_const, image=user_image, image_name=filename)
     else:
         img_path = None
 
@@ -144,7 +136,7 @@ async def update_user_me(
     password: Annotated[str, Form()] = None,
     user_image: Annotated[
                         UploadFile | None, 
-                        File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in constants.ALLOWED_CONTENT_TYPES])}")
+                        File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in image_const.ALLOWED_CONTENT_TYPES])}")
                     ] = None
     ) -> Any:
     '''
@@ -161,21 +153,16 @@ async def update_user_me(
         "password":password
         }
 
-    user_in = UpdateUser(**{k: v for k, v in passed_data.items() if v is not None})
+    user_in = UserUpdateMe(**{k: v for k, v in passed_data.items() if v is not None})
 
-    if user_in.username:
+    if user_in.username is not None:
         existig_user = service.get_user_by_username(session=session, user_name=user_in.username)
         if existig_user and existig_user.id != current_user.id:
             raise exceptions.User_Already_Exists()
         
     if user_image:
-        if user_image.content_type not in constants.ALLOWED_CONTENT_TYPES:
-            raise exceptions.Unsupported_File(supported=constants.ALLOWED_CONTENT_TYPES)
-        
-        elif user_image.size > constants.MAX_IMAGE_SIZE:
-            raise exceptions.File_Too_Large(max_bytes=constants.MAX_IMAGE_SIZE)
-        
-        img_path = await upload_image(constants.USERS_IMAGES_UPLOAD_SUB_DIR, user_image, environment=settings.ENVIRONMENT)
+        filename = '_'.join([first_name.lower(), last_name.lower(), 'photo'])
+        img_path = await upload_image(image_const=image_const, image=user_image, image_name=filename)
     else:
         img_path = None
         
@@ -246,19 +233,19 @@ async def update_user(
         session: SessionDep, 
         user_id: int,
         # Optional update fields
-        first_name: Annotated[str, Form()] = None,
-        last_name: Annotated[str, Form()] = None,
-        user_name: Annotated[str, Form()] = None,
-        phone_number: Annotated[str, Form()] = None,
-        email: Annotated[EmailStr, Form()] = None,
-        birthday: Annotated[date, Form(description="The format is yyyy-mm-dd")] = None,
-        salary: Annotated[float, Form()] = None,
-        password: Annotated[str, Form()] = None,
-        is_admin: Annotated[bool, Form()] = False,
-        role_name: Annotated[str, Form()] = None,
+        first_name: Annotated[str | None, Form()] = None,
+        user_name: Annotated[str | None, Form()] = None,
+        last_name: Annotated[str | None, Form()] = None,
+        phone_number: Annotated[str | None, Form()] = None,
+        email: Annotated[EmailStr | None, Form()] = None,
+        birthday: Annotated[date | None, Form(description="The format is yyyy-mm-dd")] = None,
+        salary: Annotated[float | None, Form()] = None,
+        password: Annotated[str | None, Form()] = None,
+        is_admin: Annotated[bool | None, Form()] = None,
+        role_name: Annotated[str | None, Form()] = None,
         user_image: Annotated[
                     UploadFile | None, 
-                    File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in constants.ALLOWED_CONTENT_TYPES])}")
+                    File(description=f"Accepted image files: {' '.join([t.split('/')[-1] for t in image_const.ALLOWED_CONTENT_TYPES])}")
                 ] = None
         ) -> Any:
     '''
@@ -267,6 +254,7 @@ async def update_user(
     db_user = session.get(Users, user_id)
     if not db_user:
         raise exceptions.User_Not_Found()
+    
     # Assamble user data
     passed_data = {
         "first_name":first_name, 
@@ -283,13 +271,13 @@ async def update_user(
 
     user_in = UpdateUser(**{k: v for k, v in passed_data.items() if v is not None})
 
-    if user_in.user_name:
+    if user_in.user_name is not None:
         existing_user = service.get_user_by_username(session=session, user_name=user_in.user_name)
         if existing_user and existing_user.id != user_id:
             raise exceptions.Username_Conflict()
         
     # Get the role from the 'role_name' if passed, else set it to None
-    if "role_name" in user_in:
+    if user_in.role_name is not None:
         role = service.get_role_by_name(session=session, role_name=user_in.role_name)
         if not role:
             raise exceptions.Role_Not_Found()
@@ -297,13 +285,9 @@ async def update_user(
         role = None
 
     if user_image:
-        if user_image.content_type not in constants.ALLOWED_CONTENT_TYPES:
-            raise exceptions.Unsupported_File(supported=constants.ALLOWED_CONTENT_TYPES)
-        
-        elif user_image.size > constants.MAX_IMAGE_SIZE:
-            raise exceptions.File_Too_Large(max_bytes=constants.MAX_IMAGE_SIZE)
-        
-        img_path = await upload_image(constants.USERS_IMAGES_UPLOAD_SUB_DIR, user_image, environment=settings.ENVIRONMENT)
+        # Getting the image name from the db_user
+        filename = '_'.join([db_user.first_name.lower(), db_user.last_name.lower(), 'photo'])
+        img_path = await upload_image(image_const=image_const, image=user_image, image_name=filename)
     else:
         img_path = None
 
