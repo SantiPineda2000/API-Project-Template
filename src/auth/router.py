@@ -15,7 +15,7 @@ from src.users.service import authenticate
 ##=============================================================================================
 
 auth_routes = APIRouter()
- 
+
 @auth_routes.post(
         "/access-token"
 )
