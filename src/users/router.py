@@ -1,13 +1,19 @@
+import mimetypes
 from typing import Any, Annotated
-from fastapi import APIRouter, Depends, UploadFile, File, Form
-from sqlmodel import func, select
+from fastapi import APIRouter, Depends, UploadFile, File, Form, Query
 from datetime import date
 from pydantic import EmailStr
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 from src.uploads import upload_image
+from src.exceptions import Unsupported_File, File_Not_Found
 from src.users import service, exceptions
-from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner
+from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner, get_current_collaborator
 from src.schemas import Message
+
+from src.mail.utils import generate_new_account_email
+from src.mail.service import send_email
 from src.auth.service import verify_password
 from src.users.models import Users, Roles
 from src.users.constants import image_const
@@ -24,7 +30,7 @@ from src.users.schemas import(
     RolePublicWithoutUsers,
     RolesNames,
     CreateRole,
-    UpdateRole
+    UpdateRole,
 )
 
 ##=============================================================================================
@@ -108,7 +114,14 @@ async def create_user(
 
     user = service.create_user(session=session, user_create=user_in, role=role, img_path=img_path)
 
-    # !!! Add confirmation via email here !!!
+    # Generating the email from template
+    email_data = generate_new_account_email(email_to=user.email, username=user.user_name, password=password)
+    # Sending the email
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content
+    )
 
     return user
 
@@ -156,7 +169,7 @@ async def update_user_me(
             raise exceptions.User_Already_Exists()
         
     if user_image:
-        filename = '_'.join([first_name.lower(), last_name.lower(), 'photo'])
+        filename = '_'.join([current_user.first_name.lower(), current_user.last_name.lower(), 'photo'])
         img_path = await upload_image(image_const=image_const, image=user_image, image_name=filename)
     else:
         img_path = None
@@ -203,7 +216,8 @@ def read_user_by_id(*, user_id: int, session: SessionDep, current_user: CurrentU
     '''
     Get a specific user by id.
     '''
-    user = session.get(Users, user_id)
+    user = service.get_user_by_id(session=session, user_id=user_id)
+
     if not user:
         raise exceptions.User_Not_Found()
     
@@ -244,7 +258,7 @@ async def update_user(
     '''
     Update a user (administrators and owners only).
     '''
-    db_user = session.get(Users, user_id)
+    db_user = service.get_user_by_id(session=session, user_id=user_id)
     if not db_user:
         raise exceptions.User_Not_Found()
     
@@ -308,7 +322,7 @@ def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False)
 
 @user_routes.delete(
         "/{user_id}", 
-        dependencies=[Depends(get_current_active_owner)]
+        dependencies=[Depends(get_current_active_owner)] # Only owners can delete users
 )
 def delete_user(*, session: SessionDep, current_user: CurrentUser, user_id: int) -> Message:
     '''
@@ -432,3 +446,34 @@ def delete_roles(*, session: SessionDep, role_id: int) -> Any:
     message = service.delete_role(session=session, db_role=role)
 
     return Message(message=message)
+
+##=============================================================================================
+## FILE ROUTE
+##=============================================================================================
+
+files_router = APIRouter()
+
+@files_router.get(
+    "/images",
+    dependencies=[Depends(get_current_collaborator)], # For users only
+    response_class=FileResponse
+)
+async def fetch_file(*, path: str = Query(...)) -> Any:
+    '''
+    File fetching endpoint (development only)
+    '''
+    # Getting the path
+    image_path = Path(path)
+
+    if not image_path.is_file():
+        raise File_Not_Found()
+
+    # Getting the image name and type
+    image_name = path.split("/")[-1]
+    image_type, _ = mimetypes.guess_type(url=image_path)
+
+    if image_type not in image_const.ALLOWED_CONTENT_TYPES:
+        raise Unsupported_File()
+    
+    image = FileResponse(path=path, media_type=image_type, filename=image_name)
+    return image

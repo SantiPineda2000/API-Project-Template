@@ -32,6 +32,7 @@ def init_db(session: Session) -> None:
             first_name=settings.FIRST_SUPERUSER_FIRST_NAME,
             last_name=settings.FIRST_SUPERUSER_LAST_NAME,
             phone_number=settings.FIRST_SUPERUSER_PHONENUMBER,
+            email=settings.FIRST_SUPERUSER_EMAIL,
             user_name=settings.FIRST_SUPERUSER,
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_admin=True,

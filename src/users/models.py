@@ -16,7 +16,7 @@ class BaseUser(SQLModel):
     last_name: str = Field(max_length=50)
     birthday: date
     phone_number: PhoneNumber
-    email: EmailStr | None = Field(default=None)
+    email: EmailStr = Field(max_length=50, nullable=False)
 
 class Users(BaseUser, table=True):
     id: int | None = Field(default=None, primary_key=True)

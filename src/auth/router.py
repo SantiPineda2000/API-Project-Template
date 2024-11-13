@@ -63,6 +63,7 @@ def recover_password(user_name: str, session: SessionDep) -> Message:
 
     # Creating the reset token
     password_reset_token = service.generate_password_reset_token(username=user.user_name)
+    
     # Generating the email from template
     email_data = generate_reset_password_email(email_to=user.email, token=password_reset_token, username=user_name)
     # Sending the email
@@ -72,6 +73,7 @@ def recover_password(user_name: str, session: SessionDep) -> Message:
         html_content=email_data.html_content
     )
     return Message(message="Password recovery email sent")
+
 
 # Recovery endpoint
 @auth_routes.post("/reset-password")

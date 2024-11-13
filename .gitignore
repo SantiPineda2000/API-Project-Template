@@ -13,4 +13,6 @@ venv
 
 # Ignoring development files
 development_files/
+
+# Ignaring raw sql files
 Muebles_dev.session.sql

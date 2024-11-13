@@ -107,7 +107,8 @@ To setup locally please follow the following steps
    FIRST_SUPERUSER_LAST_NAME=doe
    FIRST_SUPERUSER=admin
    FIRST_SUPERUSER_PASSWORD=hardpassword
-   FIRST_SUPERUSER_PHONENUMBER= # With extension '+1'
+   FIRST_SUPERUSER_PHONENUMBER= # With extension example: '+11234567890'
+   FIRST_SUPERUSER_EMAIL=
    FIRST_ROLE=
    FIRST_SUPERUSER_BIRTHDAY=
 
@@ -147,26 +148,30 @@ To setup locally please follow the following steps
    fastapi dev src/main.py
    ```
 
-**_Running a local SMTP test service_**
+9. Using Python's Built-in SMTP Server (for testing emails):
 
-To run this service please make sure that the following environment variables are set:
+   To run this service please make sure that the following environment variables are set:
 
-```
-# Code above omitted 👆
+   ```
+   # Code above omitted 👆
 
-# Emails
-SMTP_HOST=local
-SMTP_USER=
-SMTP_PASSWORD=
-EMAILS_FROM_EMAIL=info@example.com
-SMTP_TLS=False
-SMTP_SSL=False
-SMTP_PORT=587
+   # Emails
+   SMTP_HOST=local
+   SMTP_USER=
+   SMTP_PASSWORD=
+   EMAILS_FROM_EMAIL=info@example.com
+   SMTP_TLS=False
+   SMTP_SSL=False
+   SMTP_PORT=587
 
-# Code bellow omitted 👇
-```
+   # Code bellow omitted 👇
+   ```
 
-The start a python ...
+   Run the following command with permissions in a terminal:
+
+   ```
+   sudo python -m smtpd -c DebuggingServer -n localhost:587
+   ```
 
 ## Recommended resources 📚
 

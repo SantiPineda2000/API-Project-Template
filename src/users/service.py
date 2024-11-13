@@ -24,6 +24,16 @@ def create_user(*, session: Session, user_create: CreateUser, role: Roles, img_p
     return db_obj
 
 
+def get_user_by_username(*, session: Session, user_name: str) -> Users | None:
+    statement = select(Users).where(Users.user_name == user_name)
+    session_user = session.exec(statement).first()
+    
+    return session_user
+
+def get_user_by_id(*, session: Session, user_id: int) -> Users | None:
+    session_user = session.get(Users, user_id)
+    return session_user
+
 def update_user(*, session: Session, db_user: Users, user_in: UpdateUser, role: Roles | None = None, img_path:str | None = None) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
     extra_data = {}
@@ -46,14 +56,6 @@ def update_user(*, session: Session, db_user: Users, user_in: UpdateUser, role: 
     session.refresh(db_user)
 
     return db_user
-
-
-def get_user_by_username(*, session: Session, user_name: str) -> Users | None:
-    statement = select(Users).where(Users.user_name == user_name)
-    session_user = session.exec(statement).first()
-    
-    return session_user
-
 
 
 def update_hash_password(*, session: Session, db_user: Users, password: str) -> str:

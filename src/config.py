@@ -2,7 +2,8 @@ import secrets
 import warnings
 import datetime
 from typing import Annotated, Any, Literal
-from pydantic_extra_types.phone_numbers import PhoneNumber 
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic import EmailStr
 
 from pydantic import (
     AnyUrl,
@@ -94,7 +95,7 @@ class Settings(BaseSettings):
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
 
     # TODO: update type to EmailStr when sqlmodel supports it
-    EMAIL_TEST_USER: str = "test@example.com"
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
     # TODO: update type to EmailStr when sqlmodel supports it
     FIRST_SUPERUSER_FIRST_NAME: str
     FIRST_SUPERUSER_LAST_NAME: str
@@ -103,6 +104,7 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_ROLE: str
     FIRST_SUPERUSER_BIRTHDAY: datetime.date
+    FIRST_SUPERUSER_EMAIL: EmailStr
 
     # Uploads location path
     UPLOADS_URL: str = './devUploads'

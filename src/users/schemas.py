@@ -60,6 +60,7 @@ class UserUpdateMe(SQLModel):
     birthday: date | None = Field(default=None)
     password: str | None= Field(default=None, min_length=8, max_length=40)
     phone_number: PhoneNumber | None = Field(default=None)
+    email: EmailStr | None = Field(default=None)
 
 # Roles
 
