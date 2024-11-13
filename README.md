@@ -1,10 +1,10 @@
-# API Project
+# API Project Template
 
-Welcome to my project, this project aims to tackle the administration of my grandfathers business, I am also using this project to learn please leave any recommendations.
+Welcome to my project 📁, his project is the core of a bigger application, intended to be used as a template. I am also using this project to learn please leave any recommendations.
 
-I tried following the best practices described in this [Repository](https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure).
+📓 I tried following the best practices described in this [Repository](https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure).
 
-Basing the project from Tiangolos [Full Stack Template](https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/app/api/routes/login.py).
+🌟 Based on the project from Tiangolo's [Full Stack Template](https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/app/api/routes/login.py).
 
 ## Setup instructions
 
@@ -146,3 +146,32 @@ To setup locally please follow the following steps
    ```
    fastapi dev src/main.py
    ```
+
+**_Running a local SMTP test service_**
+
+To run this service please make sure that the following environment variables are set:
+
+```
+# Code above omitted 👆
+
+# Emails
+SMTP_HOST=local
+SMTP_USER=
+SMTP_PASSWORD=
+EMAILS_FROM_EMAIL=info@example.com
+SMTP_TLS=False
+SMTP_SSL=False
+SMTP_PORT=587
+
+# Code bellow omitted 👇
+```
+
+The start a python ...
+
+## Recommended resources 📚
+
+In order to properly understand Tiangolo's project, the following resources 🔗 were helpful for me:
+
+- The ⚡ **FastAPI** [official documentation](https://fastapi.tiangolo.com).
+- The 🧰 **SQLModel** [official documentation](https://sqlmodel.tiangolo.com).
+- The 🔍 **Pydantic** [official documentation](https://docs.pydantic.dev/latest/).

@@ -1,6 +1,6 @@
 # pip install google-cloud-storage # To use the uploading service
 # from google.cloud import storage
-
+from pathlib import Path
 import os
 from fastapi import UploadFile
 
@@ -31,7 +31,7 @@ async def upload_image(*, image_const: ImageCons, image: UploadFile, image_name:
     image.filename = image_name + f'.{file_ext}'
     
     if settings.ENVIRONMENT == "local": # Save file locally for local development
-        local_path = os.path.join("./development_files", image_const.UPLOAD_SUB_DIR, image.filename)
+        local_path = os.path.join(Path.cwd(), "development_files", image_const.UPLOAD_SUB_DIR, image.filename)
         
         # Ensure the directory exists
         os.makedirs(os.path.dirname(local_path), exist_ok=True)

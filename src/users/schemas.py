@@ -114,8 +114,3 @@ class RolesPublic(SQLModel): # List of RolePublic objects
 
 class RolesNames(SQLModel): # List of Role's names
     role_names: list[str]
-
-# Extras
-
-class Message(SQLModel): # Generic message
-    message: str

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from sqlmodel import SQLModel
 
 ##=============================================================================================
@@ -5,7 +6,12 @@ from sqlmodel import SQLModel
 ##=============================================================================================
 
 # Image configuration constraints
-class ImageCons(SQLModel):
+@dataclass
+class ImageCons():
     ALLOWED_CONTENT_TYPES: list[str]
     MAX_IMAGE_SIZE: int
     UPLOAD_SUB_DIR: str
+
+# Generic message schema
+class Message(SQLModel):
+    message: str

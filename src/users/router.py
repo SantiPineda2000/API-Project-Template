@@ -4,11 +4,11 @@ from sqlmodel import func, select
 from datetime import date
 from pydantic import EmailStr
 
-from src.config import settings
 from src.uploads import upload_image
 from src.users import service, exceptions
 from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner
-from src.auth.service import get_password_hash, verify_password
+from src.schemas import Message
+from src.auth.service import verify_password
 from src.users.models import Users, Roles
 from src.users.constants import image_const
 from src.users.schemas import(
@@ -17,8 +17,7 @@ from src.users.schemas import(
     UserUpdateMe,
     UsersPublic, 
     UserPublicWithoutRoles,
-    UserPublicWithRoles,
-    Message, 
+    UserPublicWithRoles, 
     CreateUser,
     RolePublic,
     RolesPublic,
@@ -44,12 +43,8 @@ def read_users(*, session: SessionDep, skip: int = 0, limit: int = 10) -> Any:
     '''
     Retrieve users
     '''
-    # Counting the Users registered in the db
-    count_statement = select(func.count()).select_from(Users)
-    count = session.exec(statement=count_statement).one()
-    # Retrieving the users (max. 10)
-    statement = select(Users).offset(skip).limit(limit)
-    users = session.exec(statement=statement).all()
+    # Retrieving the count and users list from the database
+    count, users = service.retrieve_count(session=session, model=Users, skip=skip, limit=limit)
     # Returning the users list and count
     return UsersPublic(data=users, count=count) 
 
@@ -113,7 +108,7 @@ async def create_user(
 
     user = service.create_user(session=session, user_create=user_in, role=role, img_path=img_path)
 
-    # !!! Add confirmation via [WhatsApp or Email] here !!!
+    # !!! Add confirmation via email here !!!
 
     return user
 
@@ -183,10 +178,8 @@ def update_password_me(*, session: SessionDep, body:UpdatePassword, current_user
         raise exceptions.Incorrect_Password()
     if body.current_password == body.new_password:
         raise exceptions.Same_Password()
-    hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
-    session.commit()
+    
+    service.update_hash_password(session=session, db_user=current_user, password=body.new_password)
     
     return Message(message="Password updated successfully!")
 
@@ -298,9 +291,8 @@ async def update_user(
 @user_routes.patch(
         "/{user_id}/terminate",
         dependencies=[Depends(get_current_active_owner)], # Only owners can terminate a user
-        response_model=UserPublicWithoutRoles
 )
-def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False):
+def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False) -> Message:
     '''
     Terminate a user (owners only)
     '''
@@ -309,12 +301,9 @@ def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False)
         raise exceptions.User_Not_Found()
     
     if terminate:
-        db_user.terminated_at = date.today()
-        session.add(db_user)
-        session.commit()
-        session.refresh(db_user)
+        message = service.terminate_user(session=session, db_user=db_user)
     
-    return db_user
+    return Message(message=message)
     
 
 @user_routes.delete(
@@ -332,10 +321,9 @@ def delete_user(*, session: SessionDep, current_user: CurrentUser, user_id: int)
     if user == current_user:
         raise exceptions.Self_Delete()
     
-    session.delete(user)
-    session.commit()
+    message = service.delete_user(session=session, db_user=user)
     
-    return Message(message="User deleted successfully!")
+    return Message(message=message)
 
 
 ##=============================================================================================
@@ -351,16 +339,12 @@ roles_routes = APIRouter()
         dependencies=[Depends(get_current_active_admin)], # Only admins can view roles
         response_model=RolesPublic | RolesNames
 )
-def read_roles(*, session: SessionDep, skip: int = 0, limit: int = 10, just_names: bool = False) -> RolePublic | RolesNames:
+def read_roles(*, session: SessionDep, skip: int = 0, limit: int = 10, just_names: bool = False) -> Any:
     '''
     Retrieve roles
     '''
-    # Counting the Roles registered in the db
-    count_statement = select(func.count()).select_from(Roles)
-    count = session.exec(statement=count_statement).one()
-    # Retrieving the Roles (max. 10)
-    statement = select(Roles).offset(skip).limit(limit)
-    roles = session.exec(statement=statement).all()
+        # Retrieving the count and users list from the database
+    count, roles = service.retrieve_count(session=session, model=Roles, skip=skip, limit=limit)
 
     if just_names:
         return RolesNames(role_names=[record.name for record in roles])
@@ -394,9 +378,9 @@ def create_role(*, session:SessionDep, role_in: CreateRole) -> Any:
 )
 def read_role_by_id(*, session:SessionDep, role_id: int) -> Any:
     '''
-    Retrieve roles by id
+    Retrieve role by id
     '''
-    role = session.get(Roles, role_id)
+    role = service.get_role_by_id(session=session, role_id=role_id)
 
     if not role:
         raise exceptions.Role_Not_Found()
@@ -413,7 +397,7 @@ def update_role(*, session: SessionDep, role_id: int, role_in: UpdateRole) -> An
     '''
     Update Role (admins and owners only)
     '''
-    db_role = session.get(Roles, role_id)
+    db_role = service.get_role_by_id(session=session, role_id=role_id)
 
     if not db_role:
         raise exceptions.Role_Not_Found()
@@ -437,7 +421,7 @@ def delete_roles(*, session: SessionDep, role_id: int) -> Any:
     '''
     Delete a role (admins only)
     '''
-    role = session.get(Roles, role_id)
+    role = service.get_role_by_id(session=session, role_id=role_id)
     if not role:
         raise exceptions.Role_Not_Found()
     
@@ -445,7 +429,6 @@ def delete_roles(*, session: SessionDep, role_id: int) -> Any:
     if len(role.users) >= 1:
         raise exceptions.Role_In_Use()
     
-    session.delete(role)
-    session.commit()
-    
-    return Message(message="Role deleted successfully!")
+    message = service.delete_role(session=session, db_role=role)
+
+    return Message(message=message)

@@ -1,6 +1,6 @@
 import datetime
-from typing import Any
-from sqlmodel import Session, select
+from typing import Any, Type
+from sqlmodel import Session, select, SQLModel, func
 
 from src.auth.service import get_password_hash, verify_password
 from src.users.models import Users, Roles
@@ -55,14 +55,29 @@ def get_user_by_username(*, session: Session, user_name: str) -> Users | None:
     return session_user
 
 
-def authenticate(*, session: Session, user_name: str, password: str) -> Users | None:
-    db_user = get_user_by_username(session=session, user_name=user_name)
-    if not db_user:
-        return None
-    if not verify_password(password, db_user.hashed_password):
-        return None
+
+def update_hash_password(*, session: Session, db_user: Users, password: str) -> str:
+    hashed_password = get_password_hash(password=password)
+    db_user.hashed_password = hashed_password
+    session.add(db_user)
+    session.commit()
     
-    return db_user
+    return "Password updated successfully!"
+
+
+def terminate_user(*, session: Session, db_user: Users) -> str:
+    db_user.terminated_at = datetime.date.today()
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return f"User '{db_user.user_name}' terminated!"
+
+def delete_user(*, session: Session, db_user: Users) -> str:
+    session.delete(db_user)
+    session.commit()
+
+    return f"User '{db_user.user_name}' deleted successfully!"
 
 
 # Roles CRUD
@@ -76,10 +91,15 @@ def create_role(*, session:Session, role_create:Roles):
     
     return role_obj
 
-def get_role_by_name(*, session: Session, role_name: int) -> Roles | None:
+def get_role_by_name(*, session: Session, role_name: str) -> Roles | None:
     statement = select(Roles).where(Roles.name == role_name)
     session_role = session.exec(statement).first()
     
+    return session_role
+
+def get_role_by_id(*, session: Session, role_id: int) -> Roles | None:
+    session_role = session.get(Roles, role_id)
+
     return session_role
 
 def update_role(*, session: Session, db_role: Roles, role_in: UpdateRole) -> Any:
@@ -91,3 +111,44 @@ def update_role(*, session: Session, db_role: Roles, role_in: UpdateRole) -> Any
     session.refresh(db_role)
     
     return db_role
+
+def delete_role(*, session: Session, db_role: Roles) -> str:
+    session.delete(db_role)
+    session.commit()
+    
+    return f"Role '{db_role.name}' deleted successfully!"
+
+
+# Authentication service
+# ---------------------------------------------------------------------------------------------
+
+def authenticate(*, session: Session, user_name: str, password: str) -> Users | None:
+    db_user = get_user_by_username(session=session, user_name=user_name)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.hashed_password):
+        return None
+    
+    return db_user
+
+
+# Authentication service
+# ---------------------------------------------------------------------------------------------
+
+def retrieve_count(*, session: Session, model: Type[SQLModel] , skip: int, limit: int) -> tuple[int, Any]:
+    '''
+    Function that counts and retrieves the records of the passed model.
+
+    Returns:
+    ---
+    count: number of records in the database.
+    records: list of record objects from the database.
+    '''
+    # Counting the records registered in the db
+    count_statement = select(func.count()).select_from(model)
+    count = session.exec(statement=count_statement).one()
+    # Retrieving the records (max. 10)
+    statement = select(model).offset(skip).limit(limit)
+    records = session.exec(statement=statement).all()
+    
+    return count, records
