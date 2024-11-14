@@ -19,7 +19,7 @@ def generate_reset_password_email(email_to:str, token: str, username: str) -> Em
             "project_name":settings.PROJECT_NAME,
             "username": username,
             "email": email_to,
-            "valid-hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
             "link": link
         }
      )

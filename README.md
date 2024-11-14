@@ -120,6 +120,7 @@ To setup locally please follow the following steps
    SMTP_TLS=True
    SMTP_SSL=False
    SMTP_PORT=587
+   EMAIL_RESET_TOKEN_EXPIRE_HOURS=
 
    # Postgres
    POSTGRES_SERVER=localhost
@@ -148,7 +149,7 @@ To setup locally please follow the following steps
    fastapi dev src/main.py
    ```
 
-9. Using Python's Built-in SMTP Server (for testing emails):
+9. Using MailHog SMTP Server (for testing emails):
 
    To run this service please make sure that the following environment variables are set:
 
@@ -162,18 +163,45 @@ To setup locally please follow the following steps
    EMAILS_FROM_EMAIL=info@example.com
    SMTP_TLS=False
    SMTP_SSL=False
-   SMTP_PORT=587
+   SMTP_PORT=1025
 
    # Code bellow omitted 👇
    ```
 
-   Run the following command with permissions in a terminal:
+   9.1 Install MailHog by running:
+
+   **For Mac:**
 
    ```
-   sudo python -m smtpd -c DebuggingServer -n localhost:587
+   brew update && brew install mailhog
    ```
 
-## Creating email templates
+   **For Linux (Debian or Ubuntu)**
+
+   ```
+   sudo apt-get -y install golang-go
+   go get github.com/mailhog/MailHog
+   ```
+
+   9.2 Start MailHog by running:
+
+   **For Mac:**
+
+   ```
+   mailhog
+   ```
+
+   **Linux:**
+
+   ```
+   /path/to/MailHog # The path to the MailHog installation.
+   ```
+
+   The service will catch the outgoing email and display it at [`http://localhost:8025`](http://localhost:8025).
+
+## Development recommendations
+
+### Creating email templates
 
 To create a email template the project uses mjml, a markup language used for designing responsive HTML emails.
 
