@@ -132,7 +132,7 @@ async def create_user(
 )
 async def update_user_me(
     *, 
-    session: SessionDep, 
+    session: SessionDep,
     current_user: CurrentUser,
     # Optional update fields
     first_name: Annotated[str, Form()] = None,
@@ -161,7 +161,9 @@ async def update_user_me(
         "password":password
         }
 
-    user_in = UserUpdateMe(**{k: v for k, v in passed_data.items() if v is not None})
+    not_empty_data = {k: v for k, v in passed_data.items() if v is not None and v !=""}
+
+    user_in = UserUpdateMe(**not_empty_data)
 
     if user_in.username is not None:
         existig_user = service.get_user_by_username(session=session, user_name=user_in.username)
@@ -275,8 +277,10 @@ async def update_user(
         "salary":salary, 
         "role_name":role_name
         }
+    
+    not_empty_data = {k: v for k, v in passed_data.items() if v is not None and v !=""}
 
-    user_in = UpdateUser(**{k: v for k, v in passed_data.items() if v is not None})
+    user_in = UpdateUser(**not_empty_data)
 
     if user_in.user_name is not None:
         existing_user = service.get_user_by_username(session=session, user_name=user_in.user_name)

@@ -1,6 +1,6 @@
 # API Project Template
 
-Welcome to my project 📁, his project is the core of a bigger application, intended to be used as a template. I am also using this project to learn please leave any recommendations.
+Welcome to my project 📁, his project is the core of a bigger application. This is intended to be used as a template. I am also using this project to learn 🤓 please leave any recommendations.
 
 📓 I tried following the best practices described in this [Repository](https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure).
 
@@ -173,10 +173,25 @@ To setup locally please follow the following steps
    sudo python -m smtpd -c DebuggingServer -n localhost:587
    ```
 
+## Creating email templates
+
+To create a email template the project uses mjml, a markup language used for designing responsive HTML emails.
+
+1. Install mjml's Visual Studio Code [extension](https://marketplace.visualstudio.com/items?itemName=attilabuti.vscode-mjml).
+
+   Press `F1` and type `ext install vscode-mjml`.
+
+2. Create a `.mjml` file in the `src/mail/templates/src`.
+
+3. To preview the contents press `F1` or `Ctrl+Shift+P` and type `MJML: Open Preview to the Side`.
+
+4. To generate the html file press `F1` or `Ctrl+Shift+P` and type `MJML: Export HTML` modify the file name and save it pressing `Enter ↩️`.
+
 ## Recommended resources 📚
 
-In order to properly understand Tiangolo's project, the following resources 🔗 were helpful for me:
+In order to properly understand Tiangolo's project and start developing, the following resources 🔗 were helpful for me:
 
 - The ⚡ **FastAPI** [official documentation](https://fastapi.tiangolo.com).
 - The 🧰 **SQLModel** [official documentation](https://sqlmodel.tiangolo.com).
 - The 🔍 **Pydantic** [official documentation](https://docs.pydantic.dev/latest/).
+- The 📧 **MJML** [official documentation](https://documentation.mjml.io/#getting-started).

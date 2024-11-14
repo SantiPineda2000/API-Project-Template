@@ -45,4 +45,3 @@ def send_email(*, email_to: str, subject: str = "", html_content: str = "") -> N
     response = message.send(to=email_to, smtp=smtp_options)
     logger.info(f"send email result: {response}")
 
-    

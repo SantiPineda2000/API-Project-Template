@@ -11,7 +11,7 @@ venv
 # Ignoring environment variables
 .env
 
-# Ignoring development files
+# Ignoring development upload files
 development_files/
 
 # Ignaring raw sql files
