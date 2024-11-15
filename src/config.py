@@ -77,9 +77,8 @@ class Settings(BaseSettings):
     SMTP_HOST: str | None = None
     SMTP_USER: str | None = None
     SMTP_PASSWORD: str | None = None
-    # TODO: update type to EmailStr when sqlmodel supports it
-    EMAILS_FROM_EMAIL: str | None = None
-    EMAILS_FROM_NAME: str | None = None
+    EMAILS_FROM_EMAIL: EmailStr | None = None
+    EMAILS_FROM_NAME: EmailStr | None = None
 
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
@@ -94,17 +93,21 @@ class Settings(BaseSettings):
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
 
-    # TODO: update type to EmailStr when sqlmodel supports it
-    EMAIL_TEST_USER: EmailStr = "test@example.com"
-    # TODO: update type to EmailStr when sqlmodel supports it
+    # Test user
+    USERNAME_TEST_USER: str = "test_user"
+    # Test role
+    TEST_ROLE: str = "test_role"
+
+    # First Superuser
     FIRST_SUPERUSER_FIRST_NAME: str
     FIRST_SUPERUSER_LAST_NAME: str
     FIRST_SUPERUSER_PHONENUMBER: PhoneNumber
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
-    FIRST_ROLE: str
     FIRST_SUPERUSER_BIRTHDAY: datetime.date
     FIRST_SUPERUSER_EMAIL: EmailStr
+    # First Role
+    FIRST_ROLE: str 
 
     # Uploads location path
     UPLOADS_URL: str = './devUploads'

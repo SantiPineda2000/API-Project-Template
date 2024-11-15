@@ -10,6 +10,8 @@ from sqlmodel import SQLModel
 ##=============================================================================================
 
 # Users
+# ---------------------------------------------------------------------------------------------
+
 
 class BaseUser(SQLModel):
     first_name: str = Field(max_length=50)
@@ -35,6 +37,8 @@ class Users(BaseUser, table=True):
 
 
 # Roles
+# ---------------------------------------------------------------------------------------------
+
 
 class BaseRolDep(SQLModel):
     name: str = Field(max_length=50)

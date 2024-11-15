@@ -4,6 +4,7 @@ from sqlmodel import Session
 
 from src.db import engine, init_db
 
+# Setting up logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

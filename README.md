@@ -168,12 +168,16 @@ To setup locally please follow the following steps
    # Code bellow omitted 👇
    ```
 
-   9.1 Install MailHog by running:
+   9.1 Install and start MailHog by running:
 
    **For Mac:**
 
    ```
    brew update && brew install mailhog
+   ```
+
+   ```
+   mailhog
    ```
 
    **For Linux (Debian or Ubuntu)**
@@ -182,16 +186,6 @@ To setup locally please follow the following steps
    sudo apt-get -y install golang-go
    go get github.com/mailhog/MailHog
    ```
-
-   9.2 Start MailHog by running:
-
-   **For Mac:**
-
-   ```
-   mailhog
-   ```
-
-   **Linux:**
 
    ```
    /path/to/MailHog # The path to the MailHog installation.
@@ -215,6 +209,10 @@ To create a email template the project uses mjml, a markup language used for des
 
 4. To generate the html file press `F1` or `Ctrl+Shift+P` and type `MJML: Export HTML` modify the file name and save it pressing `Enter ↩️`.
 
+### Creating tests and testing
+
+For testing ...
+
 ## Recommended resources 📚
 
 In order to properly understand Tiangolo's project and start developing, the following resources 🔗 were helpful for me:
@@ -223,3 +221,4 @@ In order to properly understand Tiangolo's project and start developing, the fol
 - The 🧰 **SQLModel** [official documentation](https://sqlmodel.tiangolo.com).
 - The 🔍 **Pydantic** [official documentation](https://docs.pydantic.dev/latest/).
 - The 📧 **MJML** [official documentation](https://documentation.mjml.io/#getting-started).
+- The 🧪 **Pytest** [official documentation](https://docs.pytest.org/en/stable/getting-started.html#).

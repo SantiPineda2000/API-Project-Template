@@ -1,6 +1,5 @@
 # pip install google-cloud-storage # To use the uploading service
 # from google.cloud import storage
-from pathlib import Path
 import os
 from fastapi import UploadFile
 
