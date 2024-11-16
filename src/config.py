@@ -110,8 +110,11 @@ class Settings(BaseSettings):
     FIRST_ROLE: str 
 
     # Uploads location path
-    UPLOADS_URL: str = './devUploads'
+    UPLOADS_URL: str = 'development_files'
 
+    # Testing environment
+    TEST: bool = False
+    
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

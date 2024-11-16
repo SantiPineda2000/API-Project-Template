@@ -18,7 +18,8 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != 'local':
 # Creating initial data at startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    initial_data()
+    if not settings.TEST:
+        initial_data()
     yield
 
 app = FastAPI(

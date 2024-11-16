@@ -2,7 +2,7 @@
 
 Welcome to my project 📁, his project is the core of a bigger application. This is intended to be used as a template. I am also using this project to learn 🤓 please leave any recommendations.
 
-📓 I tried following the best practices described in this [Repository](https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure).
+📓 I followed the best practices described in this [Repository](https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure).
 
 🌟 Based on the project from Tiangolo's [Full Stack Template](https://github.com/fastapi/full-stack-fastapi-template/blob/master/backend/app/api/routes/login.py).
 
@@ -10,7 +10,7 @@ Welcome to my project 📁, his project is the core of a bigger application. Thi
 
 To setup locally please follow the following steps
 
-1. Install `Postgresql` locally or in a docker container and add the following credentials in the `.env` file:
+1. Install `Postgresql` locally or in a docker container and update the `.env` file with the following credentials:
 
    ```
    # Postgres
@@ -143,7 +143,7 @@ To setup locally please follow the following steps
    alembic upgrade head
    ```
 
-8. Run the RESTAPI using the debuger in `.vscode/launch.json` or using command:
+8. Run the RESTAPI using a debuger in `.vscode/launch.json` or using command:
 
    ```
    fastapi dev src/main.py
@@ -211,7 +211,39 @@ To create a email template the project uses mjml, a markup language used for des
 
 ### Creating tests and testing
 
-For testing ...
+For testing an in-memory data base is used. You can check the configurations in the `conftest.py` file.
+
+I recommend reading about [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html), which are a very useful feature of pytest and are heavily use in this project.
+
+#### Writing and running unit tests:
+
+1. Create a directory with the same name that the package in the `src/` directory it will test.
+   ```
+   ├── src/
+   │   └── auth/
+   ├── tests/
+       └── auth/
+   ```
+2. Inside the folder create files with the `test_` prefix or `_test` sufix to test the individual modules (router, service, etc.).
+   ```
+   ├── src/
+   │   └── auth/
+   │        ├── router.py
+   │        └── service.py
+   ├── tests/
+       └── auth/
+            ├── test_router.py
+            └── service_test.py
+   ```
+3. Create the necesary test(s). These should be independent from each other!
+
+4. Run the tests with the command:
+
+   ```
+   pytest
+   ```
+
+For more information about testing [check out this video](https://youtu.be/cHYq1MRoyI0?si=8vPOAz5H1fWHW6Mb) from **_freeCodeCamp.org_** (🔥).
 
 ## Recommended resources 📚
 

@@ -30,7 +30,7 @@ async def upload_image(*, image_const: ImageCons, image: UploadFile, image_name:
     image.filename = image_name + f'.{file_ext}'
     
     if settings.ENVIRONMENT == "local": # Save file locally for local development
-        local_path = os.path.join('.', "development_files", image_const.UPLOAD_SUB_DIR, image.filename)
+        local_path = os.path.join('.', settings.UPLOADS_URL, image_const.UPLOAD_SUB_DIR, image.filename)
         
         # Ensure the directory exists
         os.makedirs(os.path.dirname(local_path), exist_ok=True)

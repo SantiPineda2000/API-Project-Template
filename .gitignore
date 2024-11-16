@@ -10,6 +10,7 @@ venv
 
 # Ignoring environment variables
 .env
+.vscode/settings.json
 
 # Ignoring development upload files
 development_files/

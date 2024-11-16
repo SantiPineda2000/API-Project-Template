@@ -2,7 +2,7 @@ import logging
 
 from sqlmodel import Session
 
-from src.db import engine, init_db
+from src.db import init_db, engine
 
 # Setting up logs
 logging.basicConfig(level=logging.INFO)
