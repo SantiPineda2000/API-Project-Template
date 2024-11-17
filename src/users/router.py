@@ -116,6 +116,7 @@ async def create_user(
 
     # Generating the email from template
     email_data = generate_new_account_email(email_to=user.email, username=user.user_name, password=password)
+    
     # Sending the email
     send_email(
         email_to=user.email,

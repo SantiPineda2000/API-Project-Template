@@ -24,12 +24,12 @@ def random_lower_string() -> str:
 
 def random_email() -> str:
     '''Generates a random email'''
-    return EmailStr(f"{random_lower_string()}@{random_lower_string()}.com")
+    return str(object=f"{random_lower_string()}@{random_lower_string()}.com")
 
 
 def random_date() -> date:
     '''Generates a random date'''
-    return date(random.randint(1990, 2010), random.randint(0, 12), random.randint(0,29))
+    return date(random.randint(1990, 2010), random.randint(1, 12), random.randint(1,29))
 
 
 def random_phone_number(country_code: str = 'MX') -> PhoneNumber:
@@ -77,7 +77,10 @@ def user_authentication_headers(
 
 def authentication_token_from_username(
         *,
-        client:TestClient, user_name:str, db: Session, role_name:str
+        client:TestClient, 
+        user_name:str, 
+        db: Session, 
+        role_name:str
     ) -> dict[str, str]:
     '''
     Return a valid token header for the user with the given user_name,
