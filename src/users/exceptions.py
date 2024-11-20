@@ -28,11 +28,6 @@ def Username_Conflict():
         detail="User with this username already exists"
         )
 
-def Terminated_User():
-    return HTTPException(
-        status_code=400,
-        detail="This user has been terminated"
-    )
 
 def Self_Delete():
     return HTTPException(

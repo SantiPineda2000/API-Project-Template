@@ -215,7 +215,7 @@ For testing an in-memory data base is used. You can check the configurations in 
 
 I recommend reading about [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html), which are a very useful feature of pytest and are heavily use in this project.
 
-#### Writing and running unit tests:
+#### Writing and running unit tests
 
 1. Create a directory with the same name that the package in the `src/` directory it will test.
    ```
@@ -242,6 +242,37 @@ I recommend reading about [fixtures](https://docs.pytest.org/en/stable/explanati
    ```
    pytest
    ```
+
+#### Data for endpoints
+
+Pay attention to the way the endpoint takes data as query parameters or as a request body.
+
+- Query parameters:
+
+```
+r = client.post(
+         url=f"{settings.API_V1_STR}/example/path/{parameter}"
+      )
+```
+
+- Request body or data:
+
+```
+data_body = {
+   "parameter1": value,
+   "parameter2": value
+   }
+
+r = client.post(
+      url=f"{settings.API_V1_STR}/example/path/",
+      headers=example_headers,
+      data=data_body,
+   )
+```
+
+#### Tests interfering
+
+Make sure that the created `fixtures` are properly scoped, as well as proper clean up of tests. Feel free to leave any recommendations for this problem.
 
 For more information about testing [check out this video](https://youtu.be/cHYq1MRoyI0?si=8vPOAz5H1fWHW6Mb) from **_freeCodeCamp.org_** (🔥).
 

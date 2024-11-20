@@ -9,7 +9,7 @@ from pathlib import Path
 from src.uploads import upload_image
 from src.exceptions import Unsupported_File, File_Not_Found
 from src.users import service, exceptions
-from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner, get_current_collaborator
+from src.dependencies import CurrentUser, SessionDep, get_current_active_admin, get_current_active_owner, get_current_user
 from src.schemas import Message
 
 from src.mail.utils import generate_new_account_email
@@ -23,7 +23,7 @@ from src.users.schemas import(
     UserUpdateMe,
     UsersPublic, 
     UserPublicWithoutRoles,
-    UserPublicWithRoles, 
+    UserPublicWithRoles,
     CreateUser,
     RolePublic,
     RolesPublic,
@@ -88,7 +88,7 @@ async def create_user(
         first_name=first_name, 
         last_name=last_name, 
         birthday=birthday, 
-        phone_number= '+52' + phone_number, # Making a valid phone number with country code (Mexico)
+        phone_number= phone_number if '+' in phone_number else '+52' + phone_number, # Making a valid phone number with country code (Mexico)
         email= email,
         user_name=user_name,
         password=password,
@@ -99,7 +99,7 @@ async def create_user(
 
     user = service.get_user_by_username(session=session, user_name=user_in.user_name)
     if user:
-        raise exceptions.User_Not_Found()
+        raise exceptions.User_Already_Exists()
     
     role = service.get_role_by_name(session=session, role_name=role_name)
     
@@ -315,13 +315,15 @@ def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False)
     '''
     Terminate a user (owners only)
     '''
-    db_user = session.get(Users, user_id)
+    db_user = service.get_user_by_id(session=session, user_id=user_id)
     if not db_user:
         raise exceptions.User_Not_Found()
     
     if terminate:
         message = service.terminate_user(session=session, db_user=db_user)
-    
+    else:
+        message = f"User {db_user.user_name} not terminated"
+        
     return Message(message=message)
     
 
@@ -333,7 +335,7 @@ def delete_user(*, session: SessionDep, current_user: CurrentUser, user_id: int)
     '''
     Delete a user (owners only).
     '''
-    user = session.get(Users, user_id)
+    user = service.get_user_by_id(session=session, user_id=user_id)
     if not user:
         raise exceptions.User_Not_Found()
     
@@ -460,7 +462,7 @@ files_router = APIRouter()
 
 @files_router.get(
     "/images",
-    dependencies=[Depends(get_current_collaborator)], # For users only
+    dependencies=[Depends(get_current_user)], # For users only
     response_class=FileResponse
 )
 async def fetch_file(*, path: str = Query(...)) -> Any:

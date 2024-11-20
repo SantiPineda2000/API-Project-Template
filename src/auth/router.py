@@ -8,9 +8,9 @@ from src.schemas import Message
 from src.dependencies import SessionDep
 from src.auth import service, exceptions
 from src.config import settings
-from src.auth.shcemas import Token, NewPassword
+from src.auth.schemas import Token, NewPassword
 from src.users.service import authenticate, get_user_by_username, update_hash_password
-from src.users.exceptions import User_Not_Found, Terminated_User
+from src.users.exceptions import User_Not_Found
 from src.mail.utils import generate_reset_password_email
 from src.mail.service import send_email
 
@@ -36,7 +36,7 @@ def login_access_token(
     if not user:
         raise exceptions.Invalid_Credentials()
     
-    elif not user.terminated_at is None:
+    if user.terminated_at is not None:
         raise exceptions.Terminated_User()
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -48,18 +48,18 @@ def login_access_token(
     )
 
 # Email sending endpoint
-@auth_routes.post("/password-recovery/{email}")
-def recover_password(user_name: str, session: SessionDep) -> Message:
+@auth_routes.post("/password-recovery/{user_name}")
+def recover_password(session: SessionDep, user_name: str) -> Message:
     '''
-    Password Recovery, through an email sent to the user's email
+    Password Recovery, through an email sent to the user's registered email
     '''
     user = get_user_by_username(session=session, user_name=user_name)
 
     if not user:
         raise User_Not_Found()
     
-    if user.email is None:
-        raise exceptions.Email_Not_Registered()
+    if user.terminated_at is not None:
+        raise exceptions.Terminated_User()
 
     # Creating the reset token
     password_reset_token = service.generate_password_reset_token(username=user.user_name)
@@ -82,16 +82,13 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     Reset password
     '''
     user_name = service.verify_password_reset_token(token=body.token)
-    
-    if not user_name:
-        raise exceptions.Invalid_Token()
-    
     user = get_user_by_username(session=session, user_name=user_name)
 
     if not user:
-        raise User_Not_Found()
+        raise exceptions.Invalid_Token()
+
     elif user.terminated_at is not None:
-        raise Terminated_User()
+        raise exceptions.Terminated_User()
     
     # Using the service function at src.users.service to update the password
     message = update_hash_password(session=session, db_user=user, password=body.new_password)

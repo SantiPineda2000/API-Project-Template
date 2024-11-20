@@ -11,7 +11,12 @@ from src.config import settings
 from src.initial_data import init_db
 from src.dependencies import get_db
 
-from tests.utils import get_superuser_token_headers, authentication_token_from_username
+from tests.utils import (
+    get_superuser_token_headers, 
+    authentication_token_from_username, 
+    terminated_user_authentication_headers_and_password,
+    get_admin_token_headers
+    )
 
 ##=============================================================================================
 ## CONFIGURATIONS FOR TESTING
@@ -53,7 +58,7 @@ def override_get_db() -> Generator[Session, None, None]:
 app.dependency_overrides[get_db] = override_get_db
 
 # Starting a session with the in memory database
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def db() -> Generator[Session, None, None]:
     # Creating the tables in the in-memory data base
     SQLModel.metadata.create_all(bind=engine)
@@ -65,19 +70,29 @@ def db() -> Generator[Session, None, None]:
     SQLModel.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
         yield c
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def super_user_token_headers(client: TestClient) -> dict[str, str]:
     return get_superuser_token_headers(client=client)
 
 
-@pytest.fixture(scope="module")
-def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]:
+@pytest.fixture(scope='module')
+def normal_user_token_headers(client: TestClient, db: Session, super_user_token_headers: dict[str, str]) -> dict[str, str]:
     return authentication_token_from_username(
-        client=client, user_name=settings.USERNAME_TEST_USER, db=db, role_name=settings.TEST_ROLE
+        client=client, user_name=settings.USERNAME_TEST_USER, db=db, role_name=settings.TEST_ROLE, super_user_token_headers=super_user_token_headers
     )
+
+
+@pytest.fixture(scope='module')
+def admin_user_token_headers(client: TestClient, super_user_token_headers:dict[str, str]) -> dict[str, str]:
+    return get_admin_token_headers(client=client, super_user_token_headers=super_user_token_headers)
+
+
+@pytest.fixture(scope='module')
+def terminated_user_token_headers_password(client: TestClient, db: Session, super_user_token_headers:dict[str, str]) -> dict[str, str]:
+    return terminated_user_authentication_headers_and_password(client=client, db=db, super_user_token_headers=super_user_token_headers)
