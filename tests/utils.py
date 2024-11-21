@@ -1,11 +1,13 @@
 import random
 import string
 import phonenumbers
+import numpy as np
 
-from fastapi.testclient import TestClient
+from PIL import Image
 from datetime import date
-from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlmodel import Session
+from fastapi.testclient import TestClient
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from src.config import settings
 from src.users.service import get_user_by_username, get_role_by_name
@@ -220,3 +222,26 @@ def terminated_user_authentication_headers_and_password(
         params={"user_id":user_db.id,"terminate":True}, 
     )
     return {"headers": auth_headers, "password":password}
+
+
+
+def create_random_image(*, target_size: int) -> Image:
+    """
+    Creates a random image of the specified type and size and wraps it in an UploadFile instance.
+    
+    Args:
+        image_type (str): The type of the image (e.g., "png", "jpeg").
+        target_size (int): Approximate target file size in bytes.
+    
+    Returns:
+        UploadFile: An UploadFile object containing the random image.
+    """
+    # Initial dimensions for the image
+    width = int(round(np.sqrt(target_size / 24), 0)) # Calculate the width and height from target_size
+    height = width
+
+    # Generate a random matrix with shape (size, size, 3) for RGB channels
+    array = np.random.randint(0, 255, (width, height, 3), dtype=np.uint8)
+    image = Image.fromarray(obj=array, mode="RGB")
+    
+    return image

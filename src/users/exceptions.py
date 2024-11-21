@@ -12,7 +12,7 @@ def User_Not_Found():
 
 def User_Already_Exists():
     return HTTPException(
-        status_code=400, 
+        status_code=409, 
         detail="A user with this username already exists in the system."
         )
 

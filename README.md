@@ -272,7 +272,7 @@ r = client.post(
 
 #### Tests interfering
 
-Make sure that the created `fixtures` are properly scoped, as well as proper clean up of tests. Feel free to leave any recommendations for this problem.
+Make sure that the created `fixtures` are properly scoped. Properly clean up test data. Feel free to leave any recommendations for this problem.
 
 For more information about testing [check out this video](https://youtu.be/cHYq1MRoyI0?si=8vPOAz5H1fWHW6Mb) from **_freeCodeCamp.org_** (🔥).
 

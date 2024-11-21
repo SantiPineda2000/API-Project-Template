@@ -127,6 +127,17 @@ async def create_user(
     return user
 
 
+@user_routes.get(
+        "/me", 
+        response_model=UserPublicWithRoles
+)
+def read_user_me(current_user: CurrentUser) -> Any:
+    '''
+    Get current user
+    '''
+    return current_user
+
+
 @user_routes.patch(
         "/me", 
         response_model=UserPublicWithoutRoles
@@ -155,7 +166,7 @@ async def update_user_me(
     passed_data = {
         "first_name":first_name, 
         "last_name":last_name, 
-        "user_name":user_name,
+        "username":user_name,
         "phone_number":phone_number,
         "email":email,
         "birthday":birthday,
@@ -200,16 +211,6 @@ def update_password_me(*, session: SessionDep, body:UpdatePassword, current_user
     return Message(message="Password updated successfully!")
 
 
-@user_routes.get(
-        "/me", 
-        response_model=UserPublicWithRoles
-)
-def read_user_me(current_user: CurrentUser) -> Any:
-    '''
-    Get current user
-    '''
-    return current_user
-
 
 @user_routes.get(
         "/{user_id}", 
@@ -220,7 +221,7 @@ def read_user_by_id(*, user_id: int, session: SessionDep, current_user: CurrentU
     Get a specific user by id.
     '''
     user = service.get_user_by_id(session=session, user_id=user_id)
-
+    
     if not user:
         raise exceptions.User_Not_Found()
     
@@ -307,26 +308,6 @@ async def update_user(
     return db_user
 
 
-@user_routes.patch(
-        "/{user_id}/terminate",
-        dependencies=[Depends(get_current_active_owner)], # Only owners can terminate a user
-)
-def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False) -> Message:
-    '''
-    Terminate a user (owners only)
-    '''
-    db_user = service.get_user_by_id(session=session, user_id=user_id)
-    if not db_user:
-        raise exceptions.User_Not_Found()
-    
-    if terminate:
-        message = service.terminate_user(session=session, db_user=db_user)
-    else:
-        message = f"User {db_user.user_name} not terminated"
-        
-    return Message(message=message)
-    
-
 @user_routes.delete(
         "/{user_id}", 
         dependencies=[Depends(get_current_active_owner)] # Only owners can delete users
@@ -344,6 +325,26 @@ def delete_user(*, session: SessionDep, current_user: CurrentUser, user_id: int)
     
     message = service.delete_user(session=session, db_user=user)
     
+    return Message(message=message)
+
+
+@user_routes.patch(
+        "/{user_id}/terminate",
+        dependencies=[Depends(get_current_active_owner)], # Only owners can terminate a user
+)
+def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False) -> Message:
+    '''
+    Terminate a user (owners only)
+    '''
+    db_user = service.get_user_by_id(session=session, user_id=user_id)
+    if not db_user:
+        raise exceptions.User_Not_Found()
+    
+    if terminate:
+        message = service.terminate_user(session=session, db_user=db_user)
+    else:
+        message = f"User {db_user.user_name} not terminated"
+        
     return Message(message=message)
 
 

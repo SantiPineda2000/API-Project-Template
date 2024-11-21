@@ -1,4 +1,5 @@
 import pytest
+import pathlib
 
 from collections.abc import Generator
 from fastapi.testclient import TestClient
@@ -15,7 +16,8 @@ from tests.utils import (
     get_superuser_token_headers, 
     authentication_token_from_username, 
     terminated_user_authentication_headers_and_password,
-    get_admin_token_headers
+    get_admin_token_headers,
+    create_random_image
     )
 
 ##=============================================================================================
@@ -96,3 +98,27 @@ def admin_user_token_headers(client: TestClient, super_user_token_headers:dict[s
 @pytest.fixture(scope='module')
 def terminated_user_token_headers_password(client: TestClient, db: Session, super_user_token_headers:dict[str, str]) -> dict[str, str]:
     return terminated_user_authentication_headers_and_password(client=client, db=db, super_user_token_headers=super_user_token_headers)
+
+
+@pytest.fixture(scope="session")
+def png_accepted_size_image_file(tmp_path_factory) -> pathlib.Path:
+    img = create_random_image(target_size=150000)
+    fn = tmp_path_factory.mktemp("test_files") / "test_img.png"
+    img.save(fn, 'png')
+    return fn
+
+
+@pytest.fixture(scope="session")
+def bmp_accepted_size_image_file(tmp_path_factory) -> pathlib.Path:
+    img = create_random_image(target_size=150000)
+    fn = tmp_path_factory.mktemp("test_files") / "test_img.bmp"
+    img.save(fn, 'BMP')
+    return fn
+
+
+@pytest.fixture(scope="session")
+def jpeg_unaccepted_size_image_file(tmp_path_factory) -> pathlib.Path:
+    img = create_random_image(target_size=200000000)
+    fn = tmp_path_factory.mktemp("test_files") / "test_img.jpeg"
+    img.save(fn, 'jpeg')
+    return fn
