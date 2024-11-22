@@ -1,6 +1,7 @@
 import random
 
 from sqlmodel import Session
+from pathlib import Path
 
 from src.config import settings
 from src.users.service import get_user_by_username, create_user, get_role_by_name, create_role
