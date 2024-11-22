@@ -215,6 +215,8 @@ For testing an in-memory data base is used. You can check the configurations in 
 
 I recommend reading about [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html), which are a very useful feature of pytest and are heavily use in this project.
 
+Aim to test 80-90% of your code. 🤯
+
 #### Writing and running unit tests
 
 1. Create a directory with the same name that the package in the `src/` directory it will test.
@@ -237,10 +239,24 @@ I recommend reading about [fixtures](https://docs.pytest.org/en/stable/explanati
    ```
 3. Create the necesary test(s). These should be independent from each other!
 
-4. Run the tests with the command:
+4. Run the tests with the commands:
+
+   Running all tests:
 
    ```
    pytest
+   ```
+
+   Running all tests in a test\_ file:
+
+   ```
+   pytest tests/route/to/test_file_name.py
+   ```
+
+   Running a specific test in a test\_ file:
+
+   ```
+   pytest tests/route/to/test_file_name.py::test_function_name
    ```
 
 #### Data for endpoints
@@ -249,28 +265,43 @@ Pay attention to the way the endpoint takes data as query parameters or as a req
 
 - Query parameters:
 
-```
-r = client.post(
-         url=f"{settings.API_V1_STR}/example/path/{parameter}"
-      )
-```
+  ```
+  r = client.get(
+           url=f"{settings.API_V1_STR}/example/path/{parameter}"
+        )
+  ```
 
-- Request body or data:
+- Form data:
 
-```
-data_body = {
-   "parameter1": value,
-   "parameter2": value
-   }
+  ```
+  data_body = {
+     "parameter1": value,
+     "parameter2": value
+     }
 
-r = client.post(
-      url=f"{settings.API_V1_STR}/example/path/",
-      headers=example_headers,
-      data=data_body,
-   )
-```
+  r = client.post(
+        url=f"{settings.API_V1_STR}/example/path/",
+        headers=example_headers,
+        data=data_body, # <- Changes here
+     )
+  ```
 
-#### Tests interfering
+- Request body:
+
+  ```
+  data_body = {
+     "parameter1": value,
+     "parameter2": value
+     }
+
+  r = client.post(
+        url=f"{settings.API_V1_STR}/example/path/",
+        headers=example_headers,
+        json=data_body, # <- Changes here
+     )
+  ```
+
+#### Tests interference
 
 Make sure that the created `fixtures` are properly scoped. Properly clean up test data. Feel free to leave any recommendations for this problem.
 
