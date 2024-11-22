@@ -3,8 +3,8 @@ import random
 from sqlmodel import Session
 
 from src.config import settings
-from src.users.service import get_user_by_username, get_role_by_name, create_user
-from src.users.schemas import CreateUser
+from src.users.service import get_user_by_username, create_user, get_role_by_name, create_role
+from src.users.schemas import CreateUser, CreateRole
 from tests.utils import random_lower_string, random_email, random_date, random_phone_number
 
 ##=============================================================================================
@@ -45,3 +45,29 @@ def create_random_user(*, db: Session) -> dict[str, str]:
     create_user(session=db, user_create=user_in, role=role)
     return {"username": username, "password": password}
 
+
+def create_random_role(*, db= Session) -> str:
+    '''
+    Create a random role and return the name
+
+    Returns
+    ---
+    name
+    '''
+    name = random_lower_string()
+    description = random_lower_string()
+    role_in = CreateRole(
+        name=name,
+        description=description,
+    )
+    create_role(session=db, role_create=role_in)
+    return name
+
+
+def role_clean_up_test(*, db:Session, role_name:str) -> None:
+    '''
+    Deletes the role specified, to clean up tests
+    '''
+    role = get_role_by_name(session=db, role_name=role_name)
+    db.delete(role)
+    db.commit()

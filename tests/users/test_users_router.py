@@ -29,6 +29,7 @@ def test_get_all_users_super_user(
     response = r.json()
     assert r.status_code == 200
     assert type(response["data"]) == list
+    assert response["count"] == 1
 
 
 def test_get_all_users_admin_user(
@@ -764,3 +765,106 @@ def test_delete_own_user_owner(
     message = r.json()
     assert r.status_code == 403
     assert message["detail"] == "Owners are not allowed to delete themselves"
+
+ 
+# Tests for route "/{user_id}/terminate"
+# ---------------------------------------------------------------------------------------------
+
+def test_terminate_normal_user_by_super_user(
+        client: TestClient, super_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Creating the normal user
+    user_credentials = create_random_user(db=db)
+    user_db = get_user_by_username(session=db, user_name=user_credentials["username"])
+    # Terminating the user
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{user_db.id}/terminate",
+        headers=super_user_token_headers,
+        params={"terminate":True}
+    )
+    message = r.json()
+    assert r.status_code == 200
+    assert message["message"] == f"User '{user_db.user_name}' terminated!"
+    user_clean_up_tests(user_name=user_db.user_name, db=db)
+
+
+def test_terminate_normal_user_by_admin_user(
+        client: TestClient, admin_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Creating the normal user
+    user_credentials = create_random_user(db=db)
+    user_db = get_user_by_username(session=db, user_name=user_credentials["username"])
+    # Terminating the user
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{user_db.id}/terminate",
+        headers=admin_user_token_headers,
+        json={"terminate":True}
+    )
+    message = r.json()
+    assert r.status_code > 400
+    assert message["detail"] == "The user doesn't have enough privileges"
+    user_clean_up_tests(user_name=user_db.user_name, db=db)
+
+
+def test_terminate_normal_user_by_normal_user(
+        client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Creating the normal user
+    user_credentials = create_random_user(db=db)
+    user_db = get_user_by_username(session=db, user_name=user_credentials["username"])
+    # Terminating the user
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{user_db.id}/terminate",
+        headers=normal_user_token_headers,
+        json={"terminate":True}
+    )
+    message = r.json()
+    assert r.status_code > 400
+    assert message["detail"] == "The user doesn't have enough privileges"
+    user_clean_up_tests(user_name=user_db.user_name, db=db)
+
+
+def test_terminate_own_user(
+        client: TestClient, super_user_token_headers:dict[str, str], db: Session
+) -> None:
+    # Getting the owner user
+    user = get_user_by_username(session=db, user_name=settings.FIRST_SUPERUSER)
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{user.id}/terminate",
+        headers=super_user_token_headers,
+        json={"terminate":True}
+    )
+    message = r.json()
+    assert r.status_code == 403
+    assert message["detail"] == "Owners are not allowed to terminate themselves"
+
+
+def test_terminate_not_registered_user(
+        client: TestClient, super_user_token_headers:dict[str, str]
+) -> None:
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{random.randint(20,55)}/terminate",
+        headers=super_user_token_headers,
+        json={"terminate":True}
+    )
+    message = r.json()
+    assert r.status_code == 404
+    assert message["detail"] == "The user specified does not exist in the system"
+
+
+def test_not_terminate_normal_user_by_super_user(
+        client: TestClient, super_user_token_headers: dict[str, str], db: Session
+) -> None:
+    # Creating the normal user
+    user_credentials = create_random_user(db=db)
+    user_db = get_user_by_username(session=db, user_name=user_credentials["username"])
+    # Terminating the user
+    r = client.patch(
+        url=f"{settings.API_V1_STR}/users/{user_db.id}/terminate",
+        headers=super_user_token_headers,
+        json={"terminate":False}
+    )
+    message = r.json()
+    assert r.status_code == 200
+    assert message["message"] == f"User '{user_db.user_name}' not terminated"
+    user_clean_up_tests(user_name=user_db.user_name, db=db)
