@@ -284,14 +284,14 @@ async def update_user(
 
     user_in = UpdateUser(**not_empty_data)
 
-    if user_in.user_name is not None:
-        existing_user = service.get_user_by_username(session=session, user_name=user_in.user_name)
+    if user_name is not None:
+        existing_user = service.get_user_by_username(session=session, user_name=user_name)
         if existing_user and existing_user.id != user_id:
             raise exceptions.Username_Conflict()
         
     # Get the role from the 'role_name' if passed, else set it to None
-    if user_in.role_name is not None:
-        role = service.get_role_by_name(session=session, role_name=user_in.role_name)
+    if role_name is not None:
+        role = service.get_role_by_name(session=session, role_name=role_name)
         if not role:
             raise exceptions.Role_Not_Found()
     else:
@@ -332,19 +332,23 @@ def delete_user(*, session: SessionDep, current_user: CurrentUser, user_id: int)
         "/{user_id}/terminate",
         dependencies=[Depends(get_current_active_owner)], # Only owners can terminate a user
 )
-def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False) -> Message:
+def terminate_user(*, session:SessionDep, user_id: int, terminate: bool = False, current_user: CurrentUser) -> Message:
     '''
     Terminate a user (owners only)
     '''
     db_user = service.get_user_by_id(session=session, user_id=user_id)
+    
     if not db_user:
         raise exceptions.User_Not_Found()
+    
+    if current_user == db_user:
+        raise exceptions.Self_Termination()
     
     if terminate:
         message = service.terminate_user(session=session, db_user=db_user)
     else:
-        message = f"User {db_user.user_name} not terminated"
-        
+        message = f"User '{db_user.user_name}' not terminated"
+
     return Message(message=message)
 
 
@@ -363,14 +367,14 @@ roles_routes = APIRouter()
 )
 def read_roles(*, session: SessionDep, skip: int = 0, limit: int = 10, just_names: bool = False) -> Any:
     '''
-    Retrieve roles
+    Retrieve roles (owners and admins only)
     '''
         # Retrieving the count and users list from the database
     count, roles = service.retrieve_count(session=session, model=Roles, skip=skip, limit=limit)
 
     if just_names:
         return RolesNames(role_names=[record.name for record in roles])
-    
+
     return RolesPublic(data=roles, count=count) # Returning the roles' list and count
 
 
@@ -381,7 +385,7 @@ def read_roles(*, session: SessionDep, skip: int = 0, limit: int = 10, just_name
 )
 def create_role(*, session:SessionDep, role_in: CreateRole) -> Any:
     '''
-    Create a role
+    Create a role (owners and admins only)
     '''
     role = service.get_role_by_name(session=session, role_name=role_in.name)
 
@@ -400,7 +404,7 @@ def create_role(*, session:SessionDep, role_in: CreateRole) -> Any:
 )
 def read_role_by_id(*, session:SessionDep, role_id: int) -> Any:
     '''
-    Retrieve role by id
+    Retrieve role by id (owners and admins only)
     '''
     role = service.get_role_by_id(session=session, role_id=role_id)
 
@@ -417,7 +421,7 @@ def read_role_by_id(*, session:SessionDep, role_id: int) -> Any:
 )
 def update_role(*, session: SessionDep, role_id: int, role_in: UpdateRole) -> Any:
     '''
-    Update Role (admins and owners only)
+    Update Role (owners and admins only)
     '''
     db_role = service.get_role_by_id(session=session, role_id=role_id)
 
@@ -441,14 +445,14 @@ def update_role(*, session: SessionDep, role_id: int, role_in: UpdateRole) -> An
 )
 def delete_roles(*, session: SessionDep, role_id: int) -> Any:
     '''
-    Delete a role (admins only)
+    Delete a role (owners and admins only)
     '''
     role = service.get_role_by_id(session=session, role_id=role_id)
     if not role:
         raise exceptions.Role_Not_Found()
     
     # Avoid deleting a role if user(s) have it linked.
-    if len(role.users) >= 1:
+    if len(role.users) > 0:
         raise exceptions.Role_In_Use()
     
     message = service.delete_role(session=session, db_role=role)

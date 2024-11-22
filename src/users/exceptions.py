@@ -35,6 +35,12 @@ def Self_Delete():
         detail="Owners are not allowed to delete themselves"
         )
 
+def Self_Termination():
+    return HTTPException(
+        status_code=403,
+        detail="Owners are not allowed to terminate themselves"
+    )
+
 def Incorrect_Password():
     return HTTPException(
         status_code=400, 

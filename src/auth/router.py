@@ -9,7 +9,7 @@ from src.dependencies import SessionDep
 from src.auth import service, exceptions
 from src.config import settings
 from src.auth.schemas import Token, NewPassword
-from src.users.service import authenticate, get_user_by_username, update_hash_password
+from src.users.service import get_user_by_username, update_hash_password, authenticate
 from src.users.exceptions import User_Not_Found
 from src.mail.utils import generate_reset_password_email
 from src.mail.service import send_email

@@ -48,7 +48,9 @@ def update_user(*, session: Session, db_user: Users, user_in: UpdateUser, role: 
         extra_data["img_path"] = img_path
     
     if role:
-        extra_data["role"] = role # Updating the role if it is passed
+        # Append the user to the role and add it to the session
+        role.users.append(db_user)
+        session.add(role)
     
     db_user.sqlmodel_update(user_data, update=extra_data)
     session.add(db_user)
@@ -80,6 +82,16 @@ def delete_user(*, session: Session, db_user: Users) -> str:
     session.commit()
 
     return f"User '{db_user.user_name}' deleted successfully!"
+
+
+def authenticate(*, session: Session, user_name: str, password: str) -> Users | None:
+    db_user = get_user_by_username(session=session, user_name=user_name)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.hashed_password):
+        return None
+    
+    return db_user
 
 
 # Roles CRUD
@@ -121,20 +133,7 @@ def delete_role(*, session: Session, db_role: Roles) -> str:
     return f"Role '{db_role.name}' deleted successfully!"
 
 
-# Authentication service
-# ---------------------------------------------------------------------------------------------
-
-def authenticate(*, session: Session, user_name: str, password: str) -> Users | None:
-    db_user = get_user_by_username(session=session, user_name=user_name)
-    if not db_user:
-        return None
-    if not verify_password(password, db_user.hashed_password):
-        return None
-    
-    return db_user
-
-
-# Authentication service
+# General service
 # ---------------------------------------------------------------------------------------------
 
 def retrieve_count(*, session: Session, model: Type[SQLModel] , skip: int, limit: int) -> tuple[int, Any]:
