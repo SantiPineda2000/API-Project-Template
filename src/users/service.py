@@ -30,9 +30,11 @@ def get_user_by_username(*, session: Session, user_name: str) -> Users | None:
     
     return session_user
 
+
 def get_user_by_id(*, session: Session, user_id: int) -> Users | None:
     session_user = session.get(Users, user_id)
     return session_user
+
 
 def update_user(*, session: Session, db_user: Users, user_in: UpdateUser, role: Roles | None = None, img_path:str | None = None) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
@@ -76,6 +78,7 @@ def terminate_user(*, session: Session, db_user: Users) -> str:
     session.refresh(db_user)
 
     return f"User '{db_user.user_name}' terminated!"
+
 
 def delete_user(*, session: Session, db_user: Users) -> str:
     session.delete(db_user)
