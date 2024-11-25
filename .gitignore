@@ -18,3 +18,5 @@ development_files/
 
 # Ignaring raw sql files
 Muebles_dev.session.sql
+
+.DS_Store
