@@ -307,6 +307,82 @@ Make sure that the created `fixtures` are properly scoped. Properly clean up tes
 
 For more information about testing [check out this video](https://youtu.be/cHYq1MRoyI0?si=8vPOAz5H1fWHW6Mb) from **_freeCodeCamp.org_** (🔥).
 
+### New models and revisions
+
+It is recommended to create a new folder for each module, for example to create a `customers` application:
+
+1. Create a folder in the `src/` directory:
+
+   ```
+      ├── src/
+         └── customers/
+   ```
+
+2. Create a `models.py` file inside this folder.
+
+   ```
+      ├── src/
+         └── customers/
+               └── models.py
+   ```
+
+3. Add the tables into the file with SQLModel.
+
+   ```
+   from sqlmodel import SQLModel
+
+   class Customer(SQLModel, table= True):
+      id: int | None = Field(default=None, primary_key=True)
+      first_name: str = Field(max_length=50)
+      last_name: str = Field(max_length=50)
+      birthday: date
+      phone_number: int
+
+   # Add all the necessary columns and models here 👇
+   ```
+
+#### Creating the alembic revision
+
+To create the alembic revision correctly follow the steps:
+
+1. Import the model to the global models:
+
+   ```
+   ├── src/
+         └── models.py
+   ```
+
+   Add the model there:
+
+   ```
+   # Add all the models to this file in order to generate automatic migrations
+
+   from src.customers.models import *
+   # Code omited below 👇
+   ```
+
+2. Run the command:
+
+   ```
+   alembic --autogenerate -m "Added a customers table."
+   ```
+
+3. Check the newly generated revision, add the `sqlmodel` library import:
+
+   ```
+   # code omited above 👆
+
+   import sqlmodel
+
+   # code omited bellow 👇
+   ```
+
+4. Finally upgrade the data base, running:
+
+   ```
+   alembic upgrade head
+   ```
+
 ## Recommended resources 📚
 
 In order to properly understand Tiangolo's project and start developing, the following resources 🔗 were helpful for me:
