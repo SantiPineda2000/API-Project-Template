@@ -364,7 +364,7 @@ To create the alembic revision correctly follow the steps:
 2. Run the command:
 
    ```
-   alembic --autogenerate -m "Added a customers table."
+   alembic revision --autogenerate -m "Added a customers table."
    ```
 
 3. Check the newly generated revision, add the `sqlmodel` library import:
